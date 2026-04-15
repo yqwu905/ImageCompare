@@ -1,24 +1,18 @@
 #include <QtTest>
 
-class DummyTest : public QObject
-{
+class DummyTest : public QObject {
     Q_OBJECT
 
-private slots:
-    void initTestCase()
-    {
+   private slots:
+    void initTestCase() {
         // Called before the first test function is executed
     }
 
-    void cleanupTestCase()
-    {
+    void cleanupTestCase() {
         // Called after the last test function was executed
     }
 
-    void testBasicMath()
-    {
-        QCOMPARE(1 + 1, 2);
-    }
+    void testBasicMath() { QCOMPARE(1 + 1, 2); }
 };
 
 QTEST_MAIN(DummyTest)
