@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+      - '*' # Push events to any tag
 
 jobs:
   build:
@@ -34,8 +34,8 @@ jobs:
     - name: Deploy Qt Dependencies
       run: |
         mkdir dist
-        copy build\src\Release\ImageComparator.exe dist\
-        windeployqt --qmldir src dist\ImageComparator.exe
+        copy build\src\Release\ImageComparatorApp.exe dist\
+        windeployqt --qmldir src dist\ImageComparatorApp.exe
 
     - name: Archive Release
       uses: thedoctor0/zip-release@0.7.1

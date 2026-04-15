@@ -1,9 +1,9 @@
+#include <QDebug>
+#include <QDir>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQuickWindow>
 #include <QTimer>
-#include <QDir>
-#include <QDebug>
 
 int main(int argc, char *argv[]) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    QQuickWindow *window = qobject_cast<QQuickWindow*>(engine.rootObjects().first());
+    QQuickWindow *window = qobject_cast<QQuickWindow *>(engine.rootObjects().first());
     if (!window) {
         qWarning() << "Root object is not a QQuickWindow";
         return -1;

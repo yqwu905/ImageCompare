@@ -4,7 +4,6 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
 
 jobs:
   format-check:
@@ -43,3 +42,15 @@ jobs:
     - name: Run Tests
       working-directory: build
       run: ctest -C Release --output-on-failure
+
+    - name: Deploy Qt Dependencies
+      run: |
+        mkdir dist
+        copy build\src\Release\ImageComparatorApp.exe dist\
+        windeployqt --qmldir src dist\ImageComparatorApp.exe
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ImageComparator-Release
+        path: dist/
