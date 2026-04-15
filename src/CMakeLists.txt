@@ -1,8 +1,8 @@
-add_executable(ImageComparator
+add_executable(ImageComparatorApp
     main.cpp
 )
 
-target_link_libraries(ImageComparator PRIVATE
+target_link_libraries(ImageComparatorApp PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Qml
@@ -10,14 +10,16 @@ target_link_libraries(ImageComparator PRIVATE
 )
 
 # Add QML resources
-qt_add_qml_module(ImageComparator
+qt_add_qml_module(ImageComparatorApp
     URI ImageComparator
     VERSION 1.0
     QML_FILES
+        GlassCard.qml
+        GlassButton.qml
         Main.qml
 )
 
 # Install rules (Basic)
-install(TARGETS ImageComparator
+install(TARGETS ImageComparatorApp
     RUNTIME DESTINATION bin
 )
