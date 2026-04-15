@@ -1,5 +1,7 @@
 add_executable(ImageComparatorApp
     main.cpp
+    FolderTreeModel.cpp
+    FolderTreeModel.h
 )
 
 target_link_libraries(ImageComparatorApp PRIVATE
