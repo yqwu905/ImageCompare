@@ -1,5 +1,5 @@
 import QtQuick
-import Qt5Compat.GraphicalEffects
+import QtQuick.Effects
 
 Item {
     id: root
@@ -13,6 +13,7 @@ Item {
         anchors.fill: parent
         color: "transparent"
         radius: root.radius
+        visible: false
     }
 
     ShaderEffectSource {
@@ -23,23 +24,19 @@ Item {
         visible: false
     }
 
-    FastBlur {
-        id: blurEffect
+    MultiEffect {
         anchors.fill: parent
         source: blurSource
-        radius: root.blurRadius
-        transparentBorder: false
-        visible: false
-    }
-
-    OpacityMask {
-        anchors.fill: parent
-        source: blurEffect
+        maskEnabled: true
         maskSource: backgroundRect
+        blurEnabled: true
+        blurMax: 64
+        blur: root.blurRadius / 64.0
     }
 
     // Semi-transparent overlay with subtle light border and inner glow
     Rectangle {
+        id: overlayRect
         anchors.fill: parent
         radius: root.radius
         color: root.color
@@ -48,13 +45,13 @@ Item {
     }
 
     // Outer subtle shadow to create a suspension feel
-    DropShadow {
+    MultiEffect {
         anchors.fill: parent
         source: backgroundRect
-        radius: 12
-        samples: 25
-        color: Qt.rgba(0, 0, 0, 0.05)
-        verticalOffset: 4
-        transparentBorder: true
+        shadowEnabled: true
+        shadowBlur: 1.0
+        shadowColor: Qt.rgba(0, 0, 0, 0.05)
+        shadowVerticalOffset: 4
+        shadowHorizontalOffset: 0
     }
 }
