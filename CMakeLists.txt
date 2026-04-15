@@ -8,7 +8,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick Core5Compat)
 # Optional: find Test if we're building tests
 if(BUILD_TESTING OR NOT DEFINED BUILD_TESTING)
     find_package(Qt6 REQUIRED COMPONENTS Test)
