@@ -1,6 +1,9 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Layouts
+import QtQuick.Controls
+import QtQuick.Dialogs
+import ImageComparator 1.0
 
 Window {
     width: 1200
@@ -17,12 +20,21 @@ Window {
         }
     }
 
+    FolderTreeModel {
+        id: fileTreeModel
+    }
+
     ListModel {
-        id: folderModel
-        ListElement { name: "Dataset_A" }
-        ListElement { name: "Dataset_B" }
-        ListElement { name: "Dataset_C" }
-        ListElement { name: "Dataset_D" }
+        id: comparisonModel
+        // Dynamically populated when user right-clicks and adds to comparison
+    }
+
+    FolderDialog {
+        id: folderDialog
+        title: "Please choose a folder"
+        onAccepted: {
+            fileTreeModel.addRootPath(currentFolder)
+        }
     }
 
     ListModel {
@@ -63,26 +75,126 @@ Window {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 8
-                    GlassButton { textContent: "Add"; Layout.fillWidth: true }
-                    GlassButton { textContent: "Refresh"; Layout.fillWidth: true }
-                    GlassButton { textContent: "Clear"; Layout.fillWidth: true }
+                    GlassButton {
+                        textContent: "Add"
+                        Layout.fillWidth: true
+                        onClicked: folderDialog.open()
+                    }
+                    GlassButton {
+                        textContent: "Refresh"
+                        Layout.fillWidth: true
+                        onClicked: fileTreeModel.refreshAllPopulated()
+                    }
+                    GlassButton {
+                        textContent: "Clear"
+                        Layout.fillWidth: true
+                        onClicked: {
+                            fileTreeModel.clear()
+                            comparisonModel.clear()
+                        }
+                    }
                 }
 
-                ListView {
+                TreeView {
+                    id: fileTreeView
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    model: folderModel
+                    model: fileTreeModel
                     clip: true
-                    spacing: 8
-                    delegate: GlassCard {
-                        width: ListView.view.width
-                        height: 40
-                        radius: 8
-                        color: Qt.rgba(1.0, 1.0, 1.0, 0.15)
-                        Text {
-                            anchors.centerIn: parent
-                            text: model.name
-                            color: "#333333"
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    delegate: TreeViewDelegate {
+                        id: treeDelegate
+                        implicitWidth: fileTreeView.width
+                        implicitHeight: 40
+                        indentation: 20
+
+                        required property int row
+                        required property var treeModel
+
+                        // We use the entire row for click handling
+                        contentItem: Item {
+                            implicitHeight: 40
+
+                            RowLayout {
+                                anchors.fill: parent
+                                spacing: 8
+
+                                // Expansion indicator
+                                Item {
+                                    Layout.preferredWidth: 20
+                                    Layout.preferredHeight: 20
+                                    Layout.alignment: Qt.AlignVCenter
+                                    visible: model.hasChildren
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: treeDelegate.expanded ? "▼" : "▶"
+                                        color: "#666"
+                                        font.pixelSize: 12
+                                    }
+                                }
+
+                                // Placeholder if no children to keep alignment
+                                Item {
+                                    Layout.preferredWidth: 20
+                                    Layout.preferredHeight: 20
+                                    visible: !model.hasChildren
+                                }
+
+                                Text {
+                                    Layout.fillWidth: true
+                                    Layout.alignment: Qt.AlignVCenter
+                                    text: model.name
+                                    color: "#333333"
+                                    font.pixelSize: 14
+                                    elide: Text.ElideRight
+                                }
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                onClicked: (mouse) => {
+                                    if (mouse.button === Qt.LeftButton) {
+                                        fileTreeView.toggleExpanded(row)
+                                    } else if (mouse.button === Qt.RightButton) {
+                                        contextMenu.popup()
+                                    }
+                                }
+                            }
+
+                            Menu {
+                                id: contextMenu
+                                MenuItem {
+                                    text: "Refresh"
+                                    onTriggered: {
+                                        var idx = fileTreeView.index(row, 0)
+                                        fileTreeModel.refreshNode(idx)
+                                    }
+                                }
+                                MenuItem {
+                                    text: "Remove"
+                                    onTriggered: {
+                                        var idx = fileTreeView.index(row, 0)
+                                        fileTreeModel.removeNode(idx)
+                                    }
+                                }
+                                MenuItem {
+                                    text: "Add to comparison"
+                                    onTriggered: {
+                                        comparisonModel.append({
+                                            "name": model.name,
+                                            "path": model.path
+                                        })
+                                    }
+                                }
+                            }
+                        }
+
+                        background: Rectangle {
+                            color: treeDelegate.hovered ? Qt.rgba(1.0, 1.0, 1.0, 0.3) : Qt.rgba(1.0, 1.0, 1.0, 0.15)
+                            radius: 8
                         }
                     }
                 }
@@ -114,7 +226,7 @@ Window {
                     spacing: 8
 
                     Repeater {
-                        model: Math.min(folderModel.count, 4)
+                        model: Math.min(comparisonModel.count, 4)
                         delegate: ListView {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
@@ -123,7 +235,7 @@ Window {
                             model: imageModel // Mock: normally filtered by folder
 
                             header: Text {
-                                text: folderModel.get(index).name
+                                text: comparisonModel.get(index).name
                                 font.pixelSize: 12
                                 color: "#555"
                                 bottomPadding: 8
@@ -169,13 +281,13 @@ Window {
                 GridLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    columns: folderModel.count <= 2 ? folderModel.count : 2
-                    rows: folderModel.count <= 2 ? 1 : 2
+                    columns: comparisonModel.count <= 2 ? Math.max(1, comparisonModel.count) : 2
+                    rows: comparisonModel.count <= 2 ? 1 : 2
                     columnSpacing: 12
                     rowSpacing: 12
 
                     Repeater {
-                        model: Math.min(folderModel.count, 4)
+                        model: Math.min(comparisonModel.count, 4)
                         delegate: GlassCard {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
@@ -184,7 +296,7 @@ Window {
 
                             Text {
                                 anchors.centerIn: parent
-                                text: "Comparison View\n" + folderModel.get(index).name
+                                text: "Comparison View\n" + comparisonModel.get(index).name
                                 horizontalAlignment: Text.AlignHCenter
                                 color: "#444"
                             }
